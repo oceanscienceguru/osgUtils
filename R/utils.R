@@ -10,7 +10,7 @@ gliderGPS_to_dd <- function(gliderGPS) {
     df <- data.frame(gps = as.character(gliderGPS))
 
     dd <- df %>%
-      tidyr::separate(.data$gps, paste0("gpss", c("d","m")), sep="\\.", remove = FALSE) %>% #have to double escape to sep by period
+      tidyr::separate("gps", paste0("gpss", c("d","m")), sep="\\.", remove = FALSE) %>% #have to double escape to sep by period
       dplyr::mutate(gpsd = substr(.data$gpssd, 1, nchar(.data$gpssd)-2)) %>% #pull out degrees
       dplyr::mutate(gpsm = paste0(stringr::str_sub(.data$gpssd, start= -2),".", .data$gpssm)) %>% #pull out minutes
       dplyr::mutate(dplyr::across(.data$gpsd:.data$gpsm, as.numeric)) %>% #coerce back to numeric

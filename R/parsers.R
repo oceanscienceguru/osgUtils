@@ -29,7 +29,7 @@ gotoLoad <- function(inFile){
       dplyr::mutate(nums = ifelse(stringr::str_detect(raw, ".*(?=#)"),stringr::str_extract(raw, ".*(?=#)"), raw)) %>% #strip off any comments at end
       dplyr::mutate(comment = stringr::str_trim(ifelse(stringr::str_detect(raw, "(?=#).*"),stringr::str_extract(raw, "(?=#).*"), ""))) %>% #extract any comments from end
       dplyr::mutate(cleanNums = stringr::str_trim(.data$nums)) %>% #clean up both sides
-      tidyr::separate_wider_delim(.data$cleanNums, delim = " ", names = c("rawlong", "rawlat"), too_many = "merge") %>% #break into 2
+      tidyr::separate_wider_delim("cleanNums", delim = " ", names = c("rawlong", "rawlat"), too_many = "merge") %>% #break into 2
       #convert to decimal degrees using osg function
       dplyr::mutate(lat = gliderGPS_to_dd(.data$rawlat),
                     long = gliderGPS_to_dd(.data$rawlong)) %>%
