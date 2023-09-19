@@ -7,20 +7,17 @@
 #' @return numeric output value
 #' @export
 gliderGPS_to_dd <- function(gliderGPS) {
-  with(gliderGPS, {
     df <- data.frame(gps = as.character(gliderGPS))
 
     dd <- df %>%
-      tidyr::separate(gps, paste0("gpss", c("d","m")), sep="\\.", remove = FALSE) %>% #have to double escape to sep by period
-      dplyr::mutate(gpsd = substr(gpssd, 1, nchar(gpssd)-2)) %>% #pull out degrees
-      dplyr::mutate(gpsm = paste0(stringr::str_sub(gpssd, start= -2),".", gpssm)) %>% #pull out minutes
-      dplyr::mutate(dplyr::across(gpsd:gpsm, as.numeric)) %>% #coerce back to numeric
-      dplyr::mutate(gpsdd = ifelse(sign(gpsd) == -1, (abs(gpsd) + (gpsm/60))*-1, (abs(gpsd) + (gpsm/60)))) # check if neg and multiply by -1 if needed
+      tidyr::separate(.data$gps, paste0("gpss", c("d","m")), sep="\\.", remove = FALSE) %>% #have to double escape to sep by period
+      dplyr::mutate(gpsd = substr(.data$gpssd, 1, nchar(.data$gpssd)-2)) %>% #pull out degrees
+      dplyr::mutate(gpsm = paste0(stringr::str_sub(.data$gpssd, start= -2),".", .data$gpssm)) %>% #pull out minutes
+      dplyr::mutate(dplyr::across(.data$gpsd:.data$gpsm, as.numeric)) %>% #coerce back to numeric
+      dplyr::mutate(gpsdd = ifelse(sign(.data$gpsd) == -1, (abs(.data$gpsd) + (.data$gpsm/60))*-1, (abs(.data$gpsd) + (.data$gpsm/60)))) # check if neg and multiply by -1 if needed
 
     return(dd$gpsdd)
   }
-  )
-}
 
 #' Interpolate depth over time
 #'
@@ -32,7 +29,6 @@ gliderGPS_to_dd <- function(gliderGPS) {
 #' @return outputted dataframe with time and depth
 #' @export
 depthInt <- function(inGliderdf, CTD = TRUE){
-  with(inGliderdf, {
     qf <- inGliderdf
 
     #rename depthVar for processing
@@ -43,11 +39,11 @@ depthInt <- function(inGliderdf, CTD = TRUE){
     }
 
     ef <- qf %>%
-      dplyr::select(c(m_present_time, depthVar))
+      dplyr::select(c(.data$m_present_time, .data$depthVar))
 
     #coerce as dataframe
     ef <- as.data.frame(ef) %>%
-      dplyr::arrange(m_present_time) #ensure chronological order
+      dplyr::arrange(.data$m_present_time) #ensure chronological order
 
     #cutoff at seconds
     ef$m_present_time <- lubridate::as_datetime(floor(lubridate::seconds(ef$m_present_time)))
@@ -59,16 +55,14 @@ depthInt <- function(inGliderdf, CTD = TRUE){
 
     idepth <- zoo::fortify.zoo(result) %>% #extract out as DF
       dplyr::rename(osg_i_depth = result) %>%
-      dplyr::rename(m_present_time = Index) %>%
-      dplyr::mutate(m_present_time = lubridate::as_datetime(m_present_time))
+      dplyr::rename(m_present_time = .data$Index) %>%
+      dplyr::mutate(m_present_time = lubridate::as_datetime(.data$m_present_time))
 
     #force both time sets to match (i.e., round to 1sec)
     idepth$m_present_time <- lubridate::as_datetime(floor(lubridate::seconds(idepth$m_present_time)))
 
     return(idepth)
   }
-  )
-}
 
 #' Track glider state through time
 #'
@@ -81,7 +75,6 @@ depthInt <- function(inGliderdf, CTD = TRUE){
 #' @return appended dataframe with new "cast" column indicating state
 #' @export
 identify_casts_smooth <- function(data, surface_threshold, rolling_window_size) {
-  with(data, {
     data$cast <- NA
     cast_state <- "Downcast"
 
@@ -111,8 +104,6 @@ identify_casts_smooth <- function(data, surface_threshold, rolling_window_size) 
 
     return(data)
   }
-  )
-}
 
 #' Add yo ID to gliderdf
 #'
@@ -123,9 +114,6 @@ identify_casts_smooth <- function(data, surface_threshold, rolling_window_size) 
 #' @return appended dataframe with new "yo_id" column
 #' @export
 add_yo_id <- function(df) {
-  with(df, {
     df$yo_id <- cumsum(df$cast == "Downcast" & c(FALSE, df$cast[-length(df$cast)] == "Upcast")) + 1
     return(df)
   }
-  )
-}
