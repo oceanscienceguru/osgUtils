@@ -75,35 +75,54 @@ depthInt <- function(inGliderdf, CTD = TRUE){
 #' @return appended dataframe with new "cast" column indicating state
 #' @export
 identify_casts_smooth <- function(data, surface_threshold, rolling_window_size) {
-    data$cast <- NA
-    cast_state <- "Downcast"
+  data$cast <- NA
+  #cast_state <- "Downcast"
 
-    # Smooth the depth data with a rolling average
-    data$smoothed_depth <- zoo::rollapply(data$osg_i_depth, rolling_window_size, mean, align = "right", fill = NA)
+  # Smooth the depth data with a rolling average
+  data$smoothed_depth <- zoo::rollapply(data$osg_i_depth, rolling_window_size, mean, align = "right", fill = NA)
 
-    for (i in 1:nrow(data)) {
-      if (is.na(data$smoothed_depth[i])) {
-        cast_state <- "Unknown"
-      } else if (is.na(data$smoothed_depth[i - 1])) {
-        cast_state <- "Unknown"
-      } else if (data$smoothed_depth[i] <= surface_threshold) {
-        cast_state <- "Surface"
-      } else if (cast_state == "Surface" && data$smoothed_depth[i] > surface_threshold) {
-        cast_state <- "Downcast"
-      } else if (data$smoothed_depth[i] > data$smoothed_depth[i - 1]) {
-        cast_state <- "Downcast"
-      } else if (data$smoothed_depth[i] < data$smoothed_depth[i - 1]) {
-        cast_state <- "Upcast"
-      }
+  # Initialize vectors to store cast information
+  casts <- character(nrow(data))
 
-      data$cast[i] <- cast_state
+  # Find the index where depth data becomes available
+  first_depth_index <- which(!is.na(data$smoothed_depth))[1]
+
+  # Initialize casts for missing depth rows as "Unknown"
+  casts[1:(first_depth_index - 1)] <- "Unknown"
+
+  # Initialize the first cast based on the second data point with depth
+  if (!is.na(data$smoothed_depth[first_depth_index + 1])) {
+    if (data$smoothed_depth[first_depth_index + 1] > data$smoothed_depth[first_depth_index]) {
+      casts[first_depth_index] <- "Downcast"
+    } else {
+      casts[first_depth_index] <- "Upcast"
     }
-
-    # Remove the temporary smoothed_depth column
-    data <- data[, -ncol(data)]
-
-    return(data)
   }
+
+  # Loop through the data to identify casts
+  for (i in (first_depth_index + 1):nrow(data)) {
+    if (!is.na(data$smoothed_depth[i]) && !is.na(data$smoothed_depth[i - 1])) {
+      if (data$smoothed_depth[i] > data$smoothed_depth[i - 1]) {
+        casts[i] <- "Downcast"
+      } else if (data$smoothed_depth[i] < data$smoothed_depth[i - 1]) {
+        casts[i] <- "Upcast"
+      } else {
+        casts[i] <- "Surface"
+      }
+    }
+  }
+
+  # Assign "Surface" to points with depth near zero or below the surface threshold
+  casts[data$smoothed_depth < surface_threshold] <- "Surface"
+
+  # Remove the temporary smoothed_depth column
+  data <- data[, -ncol(data)]
+
+  # Create a new column in the dataframe to store the cast information
+  data$cast <- casts
+
+  return(data)
+}
 
 #' Add yo ID to gliderdf
 #'
