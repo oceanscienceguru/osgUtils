@@ -54,7 +54,7 @@ depthInt <- function(inGliderdf, CTD = TRUE){
     result <- zoo::na.approx(depth.zoo, xout = full.time) #interpolate
 
     idepth <- zoo::fortify.zoo(result) %>% #extract out as DF
-      dplyr::rename(osg_i_depth = result) %>%
+      ifelse(CTD == TRUE, dplyr::rename(osg_i_depth = result), dplyr::rename(m_i_depth = result)) %>%
       dplyr::rename(m_present_time = .data$Index) %>%
       dplyr::mutate(m_present_time = lubridate::as_datetime(.data$m_present_time))
 
@@ -72,14 +72,20 @@ depthInt <- function(inGliderdf, CTD = TRUE){
 #' @param data input dataframe that must contain a depth column
 #' @param surface_threshold numeric, how deep is considered "surface"?
 #' @param rolling_window_size numeric, how many depth samples to check across?
+#' @param CTD boolean, use CTD-derived depth, else use m_i_depth
 #' @return appended dataframe with new "cast" column indicating state
 #' @export
-identify_casts_smooth <- function(data, surface_threshold, rolling_window_size) {
+identify_casts_smooth <- function(data, surface_threshold, rolling_window_size, CTD = TRUE) {
   data$cast <- NA
-  #cast_state <- "Downcast"
 
-  # Smooth the depth data with a rolling average
-  data$smoothed_depth <- zoo::rollapply(data$osg_i_depth, rolling_window_size, mean, align = "right", fill = NA)
+  #smooth across different columns depending on if CTD-derived or not
+  if (CTD == TRUE){
+    # Smooth the depth data with a rolling average
+    data$smoothed_depth <- zoo::rollapply(data$osg_i_depth, rolling_window_size, mean, align = "right", fill = NA)
+  } else {
+    # Smooth the depth data with a rolling average
+    data$smoothed_depth <- zoo::rollapply(data$m_i_depth, rolling_window_size, mean, align = "right", fill = NA)
+  }
 
   # Initialize vectors to store cast information
   casts <- character(nrow(data))

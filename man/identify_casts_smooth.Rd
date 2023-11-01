@@ -4,7 +4,7 @@
 \alias{identify_casts_smooth}
 \title{Track glider state through time}
 \usage{
-identify_casts_smooth(data, surface_threshold, rolling_window_size)
+identify_casts_smooth(data, surface_threshold, rolling_window_size, CTD = TRUE)
 }
 \arguments{
 \item{data}{input dataframe that must contain a depth column}
@@ -12,6 +12,8 @@ identify_casts_smooth(data, surface_threshold, rolling_window_size)
 \item{surface_threshold}{numeric, how deep is considered "surface"?}
 
 \item{rolling_window_size}{numeric, how many depth samples to check across?}
+
+\item{CTD}{boolean, use CTD-derived depth, else use m_i_depth}
 }
 \value{
 appended dataframe with new "cast" column indicating state

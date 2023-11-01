@@ -4,12 +4,12 @@
 \name{osgUtils-package}
 \alias{osgUtils}
 \alias{osgUtils-package}
-\title{osgUtils: What the Package Does (One Line, Title Case)}
+\title{osgUtils: Slocum Glider Data Wrangling}
 \description{
-What the package does (one paragraph).
+Tools to help process Slocum glider data.
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Garrett Miller \email{millerg1@usf.edu} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
 
 }
 \keyword{internal}
