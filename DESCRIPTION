@@ -1,6 +1,6 @@
 Package: osgUtils
 Title: Slocum Glider Data Wrangling
-Version: 0.0.4
+Version: 0.0.5
 Authors@R: 
     person("Garrett", "Miller", , "millerg1@usf.edu", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))

@@ -54,9 +54,14 @@ depthInt <- function(inGliderdf, CTD = TRUE){
     result <- zoo::na.approx(depth.zoo, xout = full.time) #interpolate
 
     idepth <- zoo::fortify.zoo(result) %>% #extract out as DF
-      ifelse(CTD == TRUE, dplyr::rename(osg_i_depth = result), dplyr::rename(m_i_depth = result)) %>%
       dplyr::rename(m_present_time = .data$Index) %>%
       dplyr::mutate(m_present_time = lubridate::as_datetime(.data$m_present_time))
+
+    idepth <- if(isTRUE(CTD)){ #conditional rename
+      dplyr::rename(idepth, osg_i_depth = result)
+    } else if (!isTRUE(CTD)){
+      dplyr::rename(idepth, m_i_depth = result)
+    }
 
     #force both time sets to match (i.e., round to 1sec)
     idepth$m_present_time <- lubridate::as_datetime(floor(lubridate::seconds(idepth$m_present_time)))
