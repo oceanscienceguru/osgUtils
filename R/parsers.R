@@ -13,8 +13,8 @@ gotoLoad <- function(inFile){
     colnames(rawMa)[1] = "raw"
 
     #get row indices for waypoint list block
-    first <- which(rawMa == "<start:waypoints>")
-    last  <- which(rawMa == "<end:waypoints>")
+    first <- which(stringr::str_starts(stringr::str_trim(rawMa$raw), "<start:waypoints>"))
+    last  <- which(stringr::str_starts(stringr::str_trim(rawMa$raw), "<end:waypoints>"))
 
     #find radius
     radInd <- which(stringr::str_detect(rawMa$raw, "b_arg: list_when_wpt_dist"))
